@@ -35,7 +35,7 @@ ASTERISK_INCLUDE_DIR = $(ASTERISK_SRC_DIR)/include
 INSTALL_MODULES_DIR = /usr/lib/asterisk/modules
 
 # module revision
-REVISION = $(shell svnversion -n .)
+REVISION = $(shell git rev-parse HEAD)
 
 #
 # defines which can be passed on the command-line
