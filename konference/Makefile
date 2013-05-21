@@ -75,7 +75,7 @@ TARGET = app_konference.so
 INSTALL = install
 
 INCLUDE = -I$(ASTERISK_INCLUDE_DIR)
-DEBUG := -g
+#DEBUG := -g -O0
 
 #
 # compiler flags
@@ -86,7 +86,7 @@ CFLAGS = -pipe -Wall -Wmissing-prototypes -Wmissing-declarations -MD -MP $(DEBUG
 # PERF: below is 10% faster than -O2 or -O3 alone.
 #CFLAGS += -O3 -ffast-math -funroll-loops
 # below is another 5% faster or so.
-CFLAGS += -O0 #-ffast-math -funroll-all-loops -fsingle-precision-constant
+CFLAGS += -O3 -ffast-math -funroll-all-loops -fsingle-precision-constant
 #CFLAGS += -mcpu=7450 -faltivec -mabi=altivec -mdynamic-no-pic
 # adding -msse -mfpmath=sse has little effect.
 #CFLAGS += -O3 -msse -mfpmath=sse
