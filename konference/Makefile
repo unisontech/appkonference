@@ -13,7 +13,7 @@
 #
 
 # asterisk source directory
-ASTERISK_SRC_DIR =
+ASTERISK_SRC_DIR = /home/agrusha/Workspace/Git/asterisk/
 
 ifndef	ASTERISK_SRC_DIR
   $(warning Asterisk source directory is not set)
@@ -21,7 +21,7 @@ ifndef	ASTERISK_SRC_DIR
 endif
 
 # asterisk version
-ASTERISK_SRC_VERSION = $(shell if [ -e $(ASTERISK_SRC_DIR)/.version ] ; then cat $(ASTERISK_SRC_DIR)/.version | awk -F. '{printf "%01d%02d",$$1,$$2}' ; fi)
+ASTERISK_SRC_VERSION = 1100 #$(shell if [ -e $(ASTERISK_SRC_DIR)/.version ] ; then cat $(ASTERISK_SRC_DIR)/.version | awk -F. '{printf "%01d%02d",$$1,$$2}' ; fi)
 
 ifeq	($(ASTERISK_SRC_VERSION),)
   $(warning Asterisk version is not set)
@@ -32,7 +32,7 @@ endif
 ASTERISK_INCLUDE_DIR = $(ASTERISK_SRC_DIR)/include
 
 # asterisk module directory
-INSTALL_MODULES_DIR = /usr/lib/asterisk/modules
+INSTALL_MODULES_DIR = /home/agrusha/Workspace/asterisk/lib/asterisk/modules
 
 # module revision
 REVISION = $(shell svnversion -n .)
@@ -75,7 +75,7 @@ TARGET = app_konference.so
 INSTALL = install
 
 INCLUDE = -I$(ASTERISK_INCLUDE_DIR)
-#DEBUG := -g
+DEBUG := -g
 
 #
 # compiler flags
@@ -86,7 +86,7 @@ CFLAGS = -pipe -Wall -Wmissing-prototypes -Wmissing-declarations -MD -MP $(DEBUG
 # PERF: below is 10% faster than -O2 or -O3 alone.
 #CFLAGS += -O3 -ffast-math -funroll-loops
 # below is another 5% faster or so.
-CFLAGS += -O3 -ffast-math -funroll-all-loops -fsingle-precision-constant
+CFLAGS += -O0 #-ffast-math -funroll-all-loops -fsingle-precision-constant
 #CFLAGS += -mcpu=7450 -faltivec -mabi=altivec -mdynamic-no-pic
 # adding -msse -mfpmath=sse has little effect.
 #CFLAGS += -O3 -msse -mfpmath=sse
@@ -135,7 +135,7 @@ CPPFLAGS += -DCACHE_CONF_FRAMES
 #
 # Uncomment this if you want G.722 support (requires asterisk 1.6 or 1.8)
 #
-# CPPFLAGS += -DAC_USE_G722
+ CPPFLAGS += -DAC_USE_G722
 #
 
 #
@@ -191,3 +191,5 @@ $(TARGET): $(OBJS)
 
 install:
 	if [ -f $(TARGET) ]; then $(INSTALL) -m 755 $(TARGET) $(INSTALL_MODULES_DIR); fi
+	$(INSTALL) -m 644 *.wav $(INSTALL_SOUNDS_DIR)
+
