@@ -142,6 +142,12 @@ CPPFLAGS += -DCACHE_CONF_FRAMES
 #
 
 #
+# Uncomment this if you want OPUS support (requires asterisk 11)
+#
+ CPPFLAGS += -DAC_USE_OPUS
+#
+
+#
 # Uncomment this if you want SPEEX support (need to have the actual codec installed)
 #
 # CPPFLAGS += -DAC_USE_SPEEX
