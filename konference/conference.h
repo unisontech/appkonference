@@ -110,6 +110,7 @@ int count_exec(struct ast_channel* chan, const char* data);
 
 ast_conference* join_conference(ast_conf_member* member, char* conf_name, char* max_users_flag);
 
+ast_conference* find_conf(const char* name);
 // Find member, locked if found.
 ast_conf_member *find_member(const char *chan);
 

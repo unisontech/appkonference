@@ -79,7 +79,7 @@ AST_MUTEX_DEFINE_STATIC(conflist_lock);
 static int conference_count;
 
 // Forward function declarations
-static ast_conference* find_conf(const char* name);
+//static ast_conference* find_conf(const char* name);
 //static void get_unison_event_server_node_variable(struct ast_channel* channel, char **varval, char *workspace, int wssize);
 static ast_conference* create_conf(char* name, ast_conf_member* member);
 static ast_conference* remove_conf(ast_conference* conf);
@@ -483,7 +483,7 @@ ast_conference* join_conference(ast_conf_member* member, char* conf_name, char* 
 }
 
 // This function should be called with conflist_lock mutex being held
-static ast_conference* find_conf(const char* name)
+ast_conference* find_conf(const char* name)
 {
 	ast_conference *conf;
 	struct conference_bucket *bucket = &(conference_table[hash(name) % CONFERENCE_TABLE_SIZE]);

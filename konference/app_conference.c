@@ -51,6 +51,8 @@ static char *app2 = "KonferenceCount";
 static char *synopsis2 = "Channel Independent Conference Count";
 static char *descrip2 = "Channel Independent Conference Count Application";
 
+static int action_conferencelist(struct mansession *s, const struct message *m);
+
 #if	ASTERISK_SRC_VERSION == 104 || ASTERISK_SRC_VERSION == 106
 static int app_konference_main(struct ast_channel* chan, void* data)
 #else
@@ -119,8 +121,79 @@ static int load_module(void)
 
 	res |= ast_register_application(app, app_konference_main, synopsis, descrip);
 	res |= ast_register_application(app2, app_konferencecount_main, synopsis2, descrip2);
+	res |= ast_manager_register_xml("ConferenceList", EVENT_FLAG_REPORTING, action_conferencelist);
 
 	return res;
+}
+
+static int action_conferencelist(struct mansession *s, const struct message *m)
+{
+	const char *actionid = astman_get_header(m, "ActionID");
+	const char *conference = astman_get_header(m, "Conference");
+	ast_conf_member *member;
+	ast_conference *conf;
+
+	char id_text[80] = "";
+
+	if (!ast_strlen_zero(actionid)) {
+		snprintf(id_text, sizeof(id_text), "ActionID: %s\r\n", actionid);
+	}
+	if (ast_strlen_zero(conference)) {
+		astman_send_error(s, m, "No Conference name provided.");
+		return 0;
+	}
+
+	conf = find_conf(conference);
+	if (!conf) {
+		astman_send_error(s, m, "No Conference by that name found.");
+		return 0;
+	}
+
+	astman_send_listack(s, m, "Conference user list will follow", "start");
+
+	// acquire the conference lock
+	ast_rwlock_wrlock(&conf->lock);
+
+	if (conf->membercount >0)
+	{
+		member = conf->memberlist;
+		while (member) {
+			astman_append(s,
+					"Event: ConferenceList\r\n"
+					"%s"
+					"Conference: %s\r\n"
+					"CallerIDNum: %s\r\n"
+					"CallerIDName: %s\r\n"
+					"Channel: %s\r\n"
+					"Moderator: %s\r\n"
+					"\r\n",
+					id_text,
+					conf->name,
+#if	ASTERISK_SRC_VERSION < 1100
+		member->chan->caller.id.number.str ? member->chan->caller.id.number.str : "unknown",
+		member->chan->caller.id.name.str ? member->chan->caller.id.name.str: "unknown",
+		member->chan->name,
+#else
+		S_COR(ast_channel_caller(member->chan)->id.number.valid, ast_channel_caller(member->chan)->id.number.str, "<unknown>"),
+		S_COR(ast_channel_caller(member->chan)->id.name.valid, ast_channel_caller(member->chan)->id.name.str, "<no name>"),
+		ast_channel_name(member->chan),
+#endif
+					member->ismoderator ? "Yes" : "No");
+			member = member->next;
+		}
+	}
+
+	// release the conference lock
+	ast_rwlock_unlock(&conf->lock);
+
+	astman_append(s,
+	"Event: ConfbridgeListComplete\r\n"
+	"EventList: Complete\r\n"
+	"ListItems: %d\r\n"
+	"%s"
+	"\r\n", conf->membercount, id_text);
+
+	return 0;
 }
 
 #define AST_MODULE "Konference"
