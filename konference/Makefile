@@ -84,7 +84,7 @@ INCLUDE = -I$(ASTERISK_INCLUDE_DIR)
 # compiler flags
 #
 
-CFLAGS = -pipe -Wall -Wmissing-prototypes -Wmissing-declarations -MD -MP $(DEBUG)
+CFLAGS = -mtune=generic -pipe -Wall -Wmissing-prototypes -Wmissing-declarations -MD -MP $(DEBUG)
 #CFLAGS += -O3 -march=pentium3 -msse -mfpmath=sse,387 -ffast-math
 # PERF: below is 10% faster than -O2 or -O3 alone.
 #CFLAGS += -O3 -ffast-math -funroll-loops
