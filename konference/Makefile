@@ -32,7 +32,10 @@ endif
 ASTERISK_INCLUDE_DIR = $(ASTERISK_SRC_DIR)/include
 
 # asterisk module directory
-INSTALL_MODULES_DIR = /home/agrusha/Workspace/asterisk/lib/asterisk/modules
+ASTERISK_INSTALL_DIR=/home/agrusha/Workspace/asterisk
+INSTALL_MODULES_DIR=$(ASTERISK_INSTALL_DIR)/lib/asterisk/modules
+INSTALL_SOUNDS_DIR=$(ASTERISK_INSTALL_DIR)/var/lib/asterisk/sounds/en
+INSTALL_MOH_DIR=$(ASTERISK_INSTALL_DIR)/var/lib/asterisk/moh
 
 # module revision
 REVISION = $(shell git rev-parse HEAD)
@@ -192,4 +195,5 @@ $(TARGET): $(OBJS)
 install:
 	if [ -f $(TARGET) ]; then $(INSTALL) -m 755 $(TARGET) $(INSTALL_MODULES_DIR); fi
 	$(INSTALL) -m 644 *.wav $(INSTALL_SOUNDS_DIR)
+	$(INSTALL) -m 644 moh/*.wav $(INSTALL_MOH_DIR)
 
