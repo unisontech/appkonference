@@ -197,6 +197,8 @@ static int action_conferencelist(struct mansession *s, const struct message *m)
 }
 
 #define AST_MODULE "Konference"
-AST_MODULE_INFO_STANDARD(ASTERISK_GPL_KEY,
-		"Channel Independent Conference Application");
+AST_MODULE_INFO(ASTERISK_GPL_KEY, AST_MODFLAG_DEFAULT, "Channel Independent Conference Application",
+		.load = load_module,
+		.unload = unload_module,
+);
 #undef AST_MODULE

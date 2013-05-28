@@ -71,20 +71,19 @@
 
 #endif
 
-//
-// !!! THESE CONSTANTS SHOULD BE CLEANED UP AND CLARIFIED !!!
-//
-
-//
-// sample information for AST_FORMAT_SLINEAR format
-//
-
-#ifndef	AC_USE_G722
-#define AST_CONF_SAMPLE_RATE 8000
-#else
+#ifdef AC_USE_OPUS
+#define AST_CONF_SAMPLE_RATE 48000
+#define AST_FORMAT_CONFERENCE AST_FORMAT_SLINEAR48
+#elif AC_USE_G722
 #define AST_CONF_SAMPLE_RATE 16000
+#define AST_FORMAT_CONFERENCE AST_FORMAT_SLINEAR16
+#else
+#define AST_CONF_SAMPLE_RATE 8000
+#define AST_FORMAT_CONFERENCE AST_FORMAT_SLINEAR
 #endif
+
 #define AST_CONF_SAMPLE_SIZE 16
+#define AST_CONF_BYTES_PER_SAMPLE (AST_CONF_SAMPLE_SIZE / 8)
 #define AST_CONF_FRAME_INTERVAL 20
 
 //
@@ -98,32 +97,9 @@
 // (160 samples * 16 bits-per-sample / 8 bits-per-byte) = 320 bytes
 //
 
-#ifndef	AC_USE_G722
-// 160 samples 16-bit signed linear
-#define AST_CONF_BLOCK_SAMPLES 160
-#else
-#define AST_CONF_BLOCK_SAMPLES 320
-#endif
-
-// 2 bytes per sample (i.e. 16-bit)
-#define AST_CONF_BYTES_PER_SAMPLE 2
-
-#ifndef	AC_USE_G722
-// 320 bytes for each 160 sample frame of 16-bit audio
-#define AST_CONF_FRAME_DATA_SIZE 320
-#else
-#define AST_CONF_FRAME_DATA_SIZE 640
-#endif
-
-#ifndef	AC_USE_G722
-#define AST_FORMAT_CONFERENCE AST_FORMAT_SLINEAR
-#else
-#define AST_FORMAT_CONFERENCE AST_FORMAT_SLINEAR16
-#endif
-
-// 1000 ms-per-second / 20 ms-per-frame = 50 frames-per-second
+#define AST_CONF_BLOCK_SAMPLES (AST_CONF_SAMPLE_RATE * AST_CONF_FRAME_INTERVAL / 1000)
+#define AST_CONF_FRAME_DATA_SIZE (AST_CONF_BLOCK_SAMPLES * AST_CONF_BYTES_PER_SAMPLE)
 #define AST_CONF_FRAMES_PER_SECOND (1000 / AST_CONF_FRAME_INTERVAL)
-
 
 //
 // buffer and queue values
@@ -160,6 +136,9 @@
 #ifdef	AC_USE_G722
 		AC_SLINEAR_INDEX,
 		AC_G722_INDEX,
+#endif
+#ifdef  AC_USE_OPUS
+		AC_OPUS_INDEX,
 #endif
 		AC_SUPPORTED_FORMATS
 		};
@@ -220,6 +199,9 @@ struct ast_format ast_format_g729a;
 #ifdef  AC_USE_G722
 struct ast_format ast_format_slinear;
 struct ast_format ast_format_g722;
+#endif
+#ifdef  AC_USE_OPUS
+struct ast_format ast_format_opus;
 #endif
 #endif
 

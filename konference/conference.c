@@ -21,6 +21,7 @@
 #include "conference.h"
 #include "frame.h"
 #include "asterisk/utils.h"
+#include "asterisk/format.h"
 
 #include "asterisk/app.h"
 #include "asterisk/say.h"
@@ -50,6 +51,9 @@ struct ast_format ast_format_g729a = { .id = AST_FORMAT_G729A };
 #ifdef  AC_USE_G722
 struct ast_format ast_format_slinear = { .id = AST_FORMAT_SLINEAR };
 struct ast_format ast_format_g722 = { .id = AST_FORMAT_G722 };
+#endif
+#ifdef  AC_USE_OPUS
+struct ast_format ast_format_opus = { .id = AST_FORMAT_OPUS };
 #endif
 #endif
 
@@ -558,6 +562,53 @@ static ast_conference* create_conf(char* name, ast_conf_member* member)
 				(long) time(NULL), ast_atomic_fetchadd_int(&conference_uniqueint, 1));
 	}
 
+#if 1
+
+	size_t format_list_size, i;
+	const struct ast_format_list *format_list = ast_format_list_get(&format_list_size);
+	for (i = 0; i < format_list_size; ++i) {
+		switch(format_list[i].format.id) {
+		case AST_FORMAT_ULAW:
+			conf->from_slinear_paths[AC_ULAW_INDEX] = ast_translator_build_path(&format_list[i].format, &ast_format_conference);
+			break;
+		case AST_FORMAT_ALAW:
+			conf->from_slinear_paths[AC_ALAW_INDEX] = ast_translator_build_path(&format_list[i].format, &ast_format_conference);
+			break;
+		case AST_FORMAT_GSM:
+			conf->from_slinear_paths[AC_GSM_INDEX] = ast_translator_build_path(&format_list[i].format, &ast_format_conference);
+			break;
+#ifdef	AC_USE_SPEEX
+		case AST_FORMAT_SPEEX:
+			conf->from_slinear_paths[AC_SPEEX_INDEX] = ast_translator_build_path(&format_list[i].format, &ast_format_conference);
+			break;
+#endif
+#ifdef AC_USE_G729A
+		case AST_FORMAT_G729A:
+			conf->from_slinear_paths[AC_G729A_INDEX] = ast_translator_build_path(&format_list[i].format, &ast_format_conference);
+			break;
+#endif
+#ifdef AC_USE_G722
+		case AST_FORMAT_SLINEAR:
+			conf->from_slinear_paths[AC_SLINEAR_INDEX] = ast_translator_build_path(&format_list[i].format, &ast_format_conference);
+			break;
+		case AST_FORMAT_G722:
+			conf->from_slinear_paths[AC_G722_INDEX] = ast_translator_build_path(&format_list[i].format, &ast_format_conference);
+			break;
+#endif
+#ifdef AC_USE_OPUS
+		case AST_FORMAT_OPUS:
+			conf->from_slinear_paths[AC_OPUS_INDEX] = ast_translator_build_path(&format_list[i].format, &ast_format_conference);
+			break;
+#endif
+		default:
+			break;
+		}
+	}
+
+	ast_format_list_destroy(format_list);
+
+#else
+
 	// build translation paths
 	conf->from_slinear_paths[AC_CONF_INDEX] = NULL;
 #if	ASTERISK_SRC_VERSION < 1000
@@ -592,6 +643,12 @@ static ast_conference* create_conf(char* name, ast_conf_member* member)
 	conf->from_slinear_paths[AC_G722_INDEX] = ast_translator_build_path(&ast_format_g722, &ast_format_conference);
 #endif
 #endif
+#ifdef AC_USE_OPUS
+	conf->from_slinear_paths[AC_OPUS_INDEX] = ast_translator_build_path(&ast_format_opus, &ast_format_conference);
+#endif
+
+#endif
+
 
 	//
 	// spawn thread for new conference, using conference_exec(conf)
@@ -1547,7 +1604,7 @@ void start_moh_channel(int fd, const char *channel)
 			member->muted = 1;
 			member->ready_for_outgoing = 0;
 
-			struct ast_frame *f; 
+			struct ast_frame *f;
 			while ((f = get_outgoing_frame(member)))
 			{
 				ast_frfree(f);
@@ -1584,6 +1641,8 @@ void stop_moh_channel(int fd, const char *channel)
 
 void start_moh_member(int fd, ast_conf_member* member)
 {
+	ast_mutex_lock(&member->lock);
+
 	if (!member->norecv_audio)
 	{
 		// clear all sounds
@@ -1614,6 +1673,8 @@ void start_moh_member(int fd, ast_conf_member* member)
 
 void stop_moh_member(int fd, ast_conf_member* member)
 {
+	ast_mutex_lock(&member->lock);
+
 	if (!member->norecv_audio)
 	{
 		member->muted = 0;

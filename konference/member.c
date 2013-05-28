@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include "asterisk/autoconfig.h"
+#include "asterisk/channel.h"
 #include "member.h"
 #include "frame.h"
 
@@ -322,6 +323,7 @@ static void process_outgoing(ast_conf_member *member)
 				// free voice frame
 				ast_frfree(cf);
 
+				ast_log(LOG_DEBUG, "write sound frame\n");
 				// send sound frame
 				ast_write(member->chan, sf);
 
@@ -329,9 +331,10 @@ static void process_outgoing(ast_conf_member *member)
 				ast_frfree(sf);
 
 				continue;
-    			}
+			}
 		}
 
+		ast_log(LOG_DEBUG, "write voice frame\n");
 		// send the frame
 		ast_write(member->chan, cf);
 		
