@@ -962,7 +962,7 @@ void remove_member(ast_conf_member* member, ast_conference* conf, char* conf_nam
 	membercount = --conf->membercount;
 
 	// play leave sound to all the rest members of this conference
-	if (conf->membercount >0)
+	if (conf->membercount > 1)
 	{
 		member_stayed = conf->memberlist;
 		while (member_stayed) {
