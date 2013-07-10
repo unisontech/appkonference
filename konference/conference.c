@@ -103,6 +103,10 @@ static void conference_exec()
 	int tf_max_expirations = 0;
 #endif
 
+#ifdef DEBUG_STATS
+	int st_count = 0;
+#endif
+
 	// timer timestamps
 	struct timeval base, tf_base;
 
@@ -316,6 +320,23 @@ static void conference_exec()
 			{
 				member_process_outgoing_frames(conf, member);
 			}
+
+#ifdef DEBUG_STATS
+			if (++st_count % AST_CONF_FRAMES_PER_SECOND == 0) // print out stats every second
+			{
+				for (member = conf->memberlist; member; member = member->next)
+				{
+					ast_log(LOG_DEBUG,
+							"Stats for member %s: incomingq.count => %d, outgoingq.count => %d\n",
+							S_COR(ast_channel_caller(member->chan)->id.number.valid, ast_channel_caller(member->chan)->id.number.str, "<unknown>"),
+							member->incomingq.count,
+							member->outgoingq.count);
+				}
+				ast_log(LOG_DEBUG,
+						"Mixer stats: frames processed => %d\n",
+						st_count);
+			}
+#endif
 
 			// delete send frames
 			while (send_frames)

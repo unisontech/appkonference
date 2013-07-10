@@ -23,6 +23,8 @@
 // includes
 //
 
+#include <stdio.h>
+
 #include "app_conference.h"
 #include "conference.h"
 
@@ -177,6 +179,9 @@ struct ast_conf_member
 	// speaker mix frames
 	struct ast_frame *mixAstFrame;
 	conf_frame *mixConfFrame;
+
+	FILE* dump_outgoing_frames_file;
+	FILE* dump_incomming_frames_file;
 };
 
 //

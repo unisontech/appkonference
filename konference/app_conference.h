@@ -109,7 +109,7 @@
 #define AST_CONF_BUFFER_SIZE (AST_CONF_FRAME_DATA_SIZE + AST_FRIENDLY_OFFSET)
 
 // maximum number of frames queued per member
-#define AST_CONF_MAX_QUEUE 100
+#define AST_CONF_MAX_QUEUE 10
 
 //
 // timer and sleep values

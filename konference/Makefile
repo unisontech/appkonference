@@ -78,7 +78,9 @@ TARGET = app_konference.so
 INSTALL = install
 
 INCLUDE = -I$(ASTERISK_INCLUDE_DIR)
-#DEBUG := -g -O0
+#DUMP_OUTGOING_FRAMES := -DDUMP_OUTGOING_FRAMES=1
+#DEBUG_STATS := -DDEBUG_STATS=1
+#DEBUG := -g -O0 $(DUMP_OUTGOING_FRAMES) $(DEBUG_STATS)
 
 #
 # compiler flags
@@ -118,8 +120,8 @@ CPPFLAGS += -DCACHE_CONF_FRAMES
 #
 # Uncomment this if you want to use linux timerfd for timing
 #
-# CPPFLAGS += -DTIMERFD
-# CPPFLAGS += -DTIMERFD_EXPIRATIONS
+CPPFLAGS += -DTIMERFD
+CPPFLAGS += -DTIMERFD_EXPIRATIONS
 #
 
 #

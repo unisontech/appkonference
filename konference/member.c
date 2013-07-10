@@ -323,6 +323,10 @@ static void process_outgoing(ast_conf_member *member)
 				// free voice frame
 				ast_frfree(cf);
 
+				if (member->dump_outgoing_frames_file)
+				{
+					fwrite(sf->data.ptr, sf->datalen, 1, member->dump_outgoing_frames_file);
+				}
 				//ast_log(LOG_DEBUG, "write sound frame\n");
 				// send sound frame
 				ast_write(member->chan, sf);
@@ -332,6 +336,11 @@ static void process_outgoing(ast_conf_member *member)
 
 				continue;
 			}
+		}
+
+		if (member->dump_outgoing_frames_file)
+		{
+			fwrite(cf->data.ptr, cf->datalen, 1, member->dump_outgoing_frames_file);
 		}
 
 		//ast_log(LOG_DEBUG, "write voice frame\n");
@@ -474,12 +483,25 @@ int member_exec(struct ast_channel* chan, const char* data)
 	// tell conference thread we're ready for frames
 	member->ready_for_outgoing = 1;
 
+	member->dump_outgoing_frames_file = 0;
+	member->dump_incomming_frames_file = 0;
+#ifdef DUMP_OUTGOING_FRAMES
+	{
+		char filename[1024];
+		sprintf(filename, "/home/dzhukov/out-%s-%s",
+		member->conf->conf_uid,
+		S_COR(ast_channel_caller(member->chan)->id.number.valid, ast_channel_caller(member->chan)->id.number.str, "<unknown>"));
+		member->dump_outgoing_frames_file = fopen(filename, "w+");
+	}
+#endif
+
 	//
 	// member thread loop
 	//
 
 	int left;
 	struct ast_frame *f; // frame received from ast_read()
+	int frame_count = 0;
 
 	while (42)
 	{
@@ -494,7 +516,15 @@ int member_exec(struct ast_channel* chan, const char* data)
 				// they probably want to hangup...
 				break;
 			}
-
+#ifdef DEBUG_STATS
+			if (f->frametype == AST_FRAME_VOICE && (++frame_count % 50 == 0))
+			{
+				ast_log(LOG_DEBUG,
+						"Stats for member %s: frames read => %d\n",
+						S_COR(ast_channel_caller(member->chan)->id.number.valid, ast_channel_caller(member->chan)->id.number.str, "<unknown>"),
+						frame_count);
+			}
+#endif
 		}
 		else if (left == 0)
 		{
@@ -527,6 +557,15 @@ int member_exec(struct ast_channel* chan, const char* data)
 	//
 	// clean up
 	//
+
+#ifdef DUMP_OUTGOING_FRAMES
+	if (member->dump_outgoing_frames_file)
+	{
+		fclose(member->dump_outgoing_frames_file);
+		member->dump_outgoing_frames_file = 0;
+	}
+#endif
+
 	if (member->kick_flag)
 		pbx_builtin_setvar_helper(member->chan, "KONFERENCE", "KICKED");
 	remove_member(member, conf, conf_name);
@@ -1135,12 +1174,16 @@ void queue_incoming_frame(ast_conf_member* member, struct ast_frame* fr)
 	AST_LIST_INSERT_TAIL(&member->incomingq.frames, fr, frame_list);
 
 	//
-	// drop a frame if more than AST_CONF_MAX_QUEUE
+	// drop half of the queue if more than AST_CONF_MAX_QUEUE
 	//
 	if (++member->incomingq.count > AST_CONF_MAX_QUEUE)
 	{
-		ast_frfree(AST_LIST_REMOVE_HEAD(&member->incomingq.frames, frame_list));
-		member->incomingq.count--;
+		int i = member->incomingq.count / 2;
+		while(i--)
+		{
+			ast_frfree(AST_LIST_REMOVE_HEAD(&member->incomingq.frames, frame_list));
+			member->incomingq.count--;
+		}
 	}
 
 	ast_mutex_unlock(&member->incomingq.lock);
