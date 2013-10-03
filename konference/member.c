@@ -61,7 +61,7 @@ static int process_incoming(ast_conf_member *member, ast_conference *conf, struc
 				f = convert_frame(member->to_dsp, f, 1);
 				if (!f) {
 					ast_log(LOG_ERROR, "convert_frame returned NULL frame\n");
-					return 0;
+					return 1;
 				}
 
 #if	SILDET == 1
