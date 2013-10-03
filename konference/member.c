@@ -59,6 +59,11 @@ static int process_incoming(ast_conf_member *member, ast_conference *conf, struc
 			{
 				// send the frame to the preprocessor
 				f = convert_frame(member->to_dsp, f, 1);
+				if (!f) {
+					ast_log(LOG_ERROR, "convert_frame returned NULL frame\n");
+					return 0;
+				}
+
 #if	SILDET == 1
 //				ast_log(LOG_NOTICE, "sample rate for webRTC:  %d\n", AST_CONF_SAMPLE_RATE);
 
