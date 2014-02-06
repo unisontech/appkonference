@@ -516,11 +516,8 @@ int member_exec(struct ast_channel* chan, const char* data)
 			// a frame has come in before the latency timeout
 			// was reached, so we process the frame
 
-			if (!(f = ast_read(chan)) || process_incoming(member, conf, f))
-			{
-				// they probably want to hangup...
-				break;
-			}
+			f = ast_read(chan);
+
 #ifdef DEBUG_STATS
 			if (f->frametype == AST_FRAME_VOICE && (++frame_count % 50 == 0))
 			{
@@ -530,6 +527,12 @@ int member_exec(struct ast_channel* chan, const char* data)
 						frame_count);
 			}
 #endif
+
+			if (!f || process_incoming(member, conf, f))
+			{
+				// they probably want to hangup...
+				break;
+			}
 		}
 		else if (left == 0)
 		{
